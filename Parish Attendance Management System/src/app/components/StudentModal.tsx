@@ -49,17 +49,18 @@ export function StudentModal({ student, onClose, onSave }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4"
       style={{ background: "rgba(26,43,60,0.5)", backdropFilter: "blur(4px)" }}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-        style={{ background: "var(--card)", maxHeight: "90vh", overflowY: "auto" }}
+        className="w-full max-w-lg overflow-hidden rounded-t-2xl shadow-2xl sm:rounded-2xl"
+        style={{ background: "var(--card)", maxHeight: "92dvh", overflowY: "auto" }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: "var(--border)" }}>
+        {/* Reduce modal padding on phones while retaining the roomy desktop form. */}
+        <div className="flex items-center justify-between border-b px-4 py-4 sm:px-6 sm:py-5" style={{ borderColor: "var(--border)" }}>
           <div>
             <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 20, fontWeight: 600, color: "var(--primary)" }}>
               {isNew ? "Add New Student" : `Edit Student`}
@@ -80,19 +81,20 @@ export function StudentModal({ student, onClose, onSave }: Props) {
         </div>
 
         {/* Form */}
-        <div className="px-6 py-5 grid grid-cols-2 gap-4">
+        {/* Collapse paired fields into a single column for readable mobile inputs. */}
+        <div className="grid grid-cols-1 gap-4 px-4 py-5 sm:grid-cols-2 sm:px-6">
           {field("First Name", "firstName")}
           {field("Last Name", "lastName")}
           {field("Date of Birth", "dob", "date")}
           {field("Grade", "grade")}
           {field("Parent / Guardian", "parentName")}
           {field("Parent Phone", "parentPhone", "tel")}
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             {field("Parent Email", "parentEmail", "email")}
           </div>
 
           {/* Class selector */}
-          <div className="col-span-2 flex flex-col gap-1">
+          <div className="flex flex-col gap-1 sm:col-span-2">
             <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted-foreground)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
               Enrolled Class
             </label>
@@ -109,7 +111,7 @@ export function StudentModal({ student, onClose, onSave }: Props) {
           </div>
 
           {/* Active toggle */}
-          <div className="col-span-2 flex items-center gap-3">
+          <div className="flex items-center gap-3 sm:col-span-2">
             <div
               className="relative w-12 h-6 rounded-full cursor-pointer transition-colors"
               style={{ background: form.active ? "var(--primary)" : "var(--switch-background)" }}
@@ -127,7 +129,7 @@ export function StudentModal({ student, onClose, onSave }: Props) {
         </div>
 
         {/* Actions */}
-        <div className="px-6 py-4 flex gap-3 border-t" style={{ borderColor: "var(--border)" }}>
+        <div className="flex gap-3 border-t px-4 py-4 sm:px-6" style={{ borderColor: "var(--border)" }}>
           <button
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl border transition-colors"

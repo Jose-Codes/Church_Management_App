@@ -34,9 +34,10 @@ export function AdminDashboard() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Top bar */}
-      <header className="px-8 py-5 border-b flex items-center justify-between flex-shrink-0" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-        <div>
-          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 24, fontWeight: 700, color: "var(--primary)", lineHeight: 1.2 }}>
+      {/* Stack and tighten the page header so its actions fit comfortably on narrow screens. */}
+      <header className="flex flex-shrink-0 items-start justify-between gap-3 border-b px-4 py-4 sm:px-6 md:px-8 md:py-5" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+        <div className="min-w-0">
+          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(20px, 5vw, 24px)", fontWeight: 700, color: "var(--primary)", lineHeight: 1.2 }}>
             Parish Admin Dashboard
           </h1>
           <p style={{ fontSize: 13, color: "var(--muted-foreground)", marginTop: 2 }}>
@@ -45,18 +46,20 @@ export function AdminDashboard() {
         </div>
         <button
           onClick={() => setEditingStudent(null)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl transition-colors"
+          className="flex min-h-11 flex-shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 transition-colors sm:px-4"
           style={{ background: "var(--primary)", color: "#fff", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}
+          aria-label="Add Student"
         >
           <Plus size={16} />
-          Add Student
+          <span className="hidden sm:inline">Add Student</span>
         </button>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-8 py-6 flex flex-col gap-7">
+      {/* Use responsive gutters and grids so dashboard content never forces horizontal scrolling. */}
+      <div className="flex flex-1 flex-col gap-7 overflow-y-auto px-4 py-5 sm:px-6 md:px-8 md:py-6">
 
         {/* Stats row */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           <StatCard label="Total Students" value={students.filter(s => s.active).length} icon={<Users size={20} />} color="var(--primary)" />
           <StatCard label="Active Classes" value={CLASSES.length} icon={<span style={{ fontSize: 18 }}>📚</span>} color="#4A7FA5" />
           <StatCard label="This Week" value="142" sub="attendance entries" icon={<span style={{ fontSize: 18 }}>✅</span>} color="#6BAA75" />
@@ -65,7 +68,7 @@ export function AdminDashboard() {
 
         {/* Classes grid */}
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "var(--primary)" }}>
               Active Classes
             </h2>
@@ -79,7 +82,7 @@ export function AdminDashboard() {
               />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 xl:gap-4">
             {CLASSES.map(cls => {
               const count = students.filter(s => s.classId === cls.id && s.active).length;
               const isActive = selectedClass === cls.id;
@@ -123,7 +126,8 @@ export function AdminDashboard() {
 
         {/* Student table */}
         <section>
-          <div className="flex items-center gap-4 mb-4">
+          {/* Wrap roster tools and let search consume the full phone width. */}
+          <div className="mb-4 flex flex-wrap items-center gap-3 sm:gap-4">
             <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "var(--primary)", flex: 1 }}>
               {selectedClass ? `${classOf(selectedClass)?.name} — Roster` : "All Students"}
             </h2>
@@ -136,21 +140,22 @@ export function AdminDashboard() {
               </button>
             )}
             {/* Search */}
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--muted-foreground)" }} />
               <input
                 placeholder="Search students…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="pl-9 pr-4 py-2 rounded-xl border"
-                style={{ fontSize: 14, background: "var(--card)", borderColor: "var(--border)", color: "var(--foreground)", outline: "none", width: 220 }}
+                className="w-full rounded-xl border py-2 pl-9 pr-4 sm:w-[220px]"
+                style={{ fontSize: 14, background: "var(--card)", borderColor: "var(--border)", color: "var(--foreground)", outline: "none" }}
               />
             </div>
           </div>
 
           <div className="rounded-2xl border overflow-hidden" style={{ borderColor: "var(--border)", background: "var(--card)" }}>
             {/* Table header */}
-            <div className="grid px-5 py-3 border-b" style={{ gridTemplateColumns: "1.6fr 1fr 1.2fr 1fr 1fr 80px", borderColor: "var(--border)", background: "var(--muted)" }}>
+            {/* Hide column headings when each mobile row becomes a self-contained card. */}
+            <div className="hidden px-5 py-3 md:grid" style={{ gridTemplateColumns: "1.6fr 1fr 1.2fr 1fr 1fr 80px", borderBottom: "1px solid var(--border)", background: "var(--muted)" }}>
               {["Student", "Grade", "Class", "Parent", "Contact", ""].map(h => (
                 <div key={h} style={{ fontSize: 11, fontWeight: 700, color: "var(--muted-foreground)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                   {h}
@@ -168,7 +173,7 @@ export function AdminDashboard() {
                 return (
                   <div
                     key={s.id}
-                    className="grid px-5 py-3.5 items-center transition-colors hover:bg-opacity-50"
+                    className="flex flex-col gap-3 px-4 py-4 transition-colors hover:bg-opacity-50 md:grid md:items-center md:gap-0 md:px-5 md:py-3.5"
                     style={{
                       gridTemplateColumns: "1.6fr 1fr 1.2fr 1fr 1fr 80px",
                       borderTop: i > 0 ? `1px solid var(--border)` : "none",
@@ -186,7 +191,7 @@ export function AdminDashboard() {
                         <p style={{ fontSize: 11, color: "var(--muted-foreground)" }}>DOB: {s.dob}</p>
                       </div>
                     </div>
-                    <span style={{ fontSize: 14, color: "var(--foreground)" }}>{s.grade}</span>
+                    <span style={{ fontSize: 14, color: "var(--foreground)" }}><span className="mr-1 font-semibold md:hidden">Grade:</span>{s.grade}</span>
                     <div>
                       {cls && (
                         <span
@@ -197,7 +202,7 @@ export function AdminDashboard() {
                         </span>
                       )}
                     </div>
-                    <span style={{ fontSize: 13, color: "var(--foreground)" }}>{s.parentName}</span>
+                    <span style={{ fontSize: 13, color: "var(--foreground)" }}><span className="mr-1 font-semibold md:hidden">Parent:</span>{s.parentName}</span>
                     <div>
                       <p style={{ fontSize: 12, color: "var(--foreground)" }}>{s.parentPhone}</p>
                       <p style={{ fontSize: 11, color: "var(--muted-foreground)" }}>{s.parentEmail}</p>
@@ -207,6 +212,7 @@ export function AdminDashboard() {
                         onClick={() => setEditingStudent(s)}
                         className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
                         style={{ background: "var(--muted)", border: "none", cursor: "pointer" }}
+                        aria-label={`Edit ${s.firstName} ${s.lastName}`}
                       >
                         <Edit2 size={13} style={{ color: "var(--primary)" }} />
                       </button>
@@ -214,6 +220,7 @@ export function AdminDashboard() {
                         onClick={() => handleDelete(s.id)}
                         className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
                         style={{ background: "#FEE2E2", border: "none", cursor: "pointer" }}
+                        aria-label={`Delete ${s.firstName} ${s.lastName}`}
                       >
                         <Trash2 size={13} style={{ color: "var(--destructive)" }} />
                       </button>
@@ -243,7 +250,7 @@ export function AdminDashboard() {
 
 function StatCard({ label, value, sub, icon, color }: { label: string; value: number | string; sub?: string; icon: React.ReactNode; color: string }) {
   return (
-    <div className="rounded-2xl p-5 border" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+    <div className="rounded-2xl border p-4 sm:p-5" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
       <div className="flex items-start justify-between mb-3">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${color}15` }}>
           <span style={{ color }}>{icon}</span>

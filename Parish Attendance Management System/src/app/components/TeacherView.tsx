@@ -55,8 +55,9 @@ export function TeacherView() {
   if (!selectedClassId) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="px-8 py-5 border-b flex-shrink-0" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 24, fontWeight: 700, color: "var(--primary)" }}>
+        {/* Keep teacher headers readable with phone-sized gutters and fluid titles. */}
+        <header className="flex-shrink-0 border-b px-4 py-4 sm:px-6 md:px-8 md:py-5" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(20px, 5vw, 24px)", fontWeight: 700, color: "var(--primary)" }}>
             My Classes
           </h1>
           <p style={{ fontSize: 13, color: "var(--muted-foreground)", marginTop: 2 }}>
@@ -64,16 +65,17 @@ export function TeacherView() {
           </p>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-8 py-8">
+        <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6 md:px-8 md:py-8">
           {/* Class cards */}
-          <div className="grid grid-cols-2 gap-5 max-w-2xl">
+          {/* Stack class cards on phones and restore two columns when space allows. */}
+          <div className="grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
             {myClasses.map(cls => {
               const count = STUDENTS.filter(s => s.classId === cls.id && s.active).length;
               return (
                 <button
                   key={cls.id}
                   onClick={() => handleSelectClass(cls.id)}
-                  className="text-left rounded-2xl border p-6 transition-all group"
+                  className="group min-h-11 rounded-2xl border p-5 text-left transition-all sm:p-6"
                   style={{ background: "var(--card)", borderColor: "var(--border)", cursor: "pointer" }}
                 >
                   <div
@@ -106,7 +108,7 @@ export function TeacherView() {
           </div>
 
           {/* Recent attendance history */}
-          <div className="mt-10 max-w-2xl">
+          <div className="mt-8 max-w-2xl md:mt-10">
             <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "var(--primary)", marginBottom: 16 }}>
               Recent Attendance
             </h2>
@@ -114,7 +116,7 @@ export function TeacherView() {
               {["2026-05-31", "2026-05-24", "2026-05-17"].map((date, i) => (
                 <div
                   key={date}
-                  className="flex items-center justify-between px-5 py-4"
+                  className="flex flex-col items-start justify-between gap-3 px-4 py-4 sm:flex-row sm:items-center sm:px-5"
                   style={{ borderTop: i > 0 ? "1px solid var(--border)" : "none" }}
                 >
                   <div className="flex items-center gap-3">
@@ -128,7 +130,7 @@ export function TeacherView() {
                       <p style={{ fontSize: 12, color: "var(--muted-foreground)" }}>First Communion · 5 students</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 pl-12 sm:pl-0">
                     <span className="px-2 py-0.5 rounded-full" style={{ fontSize: 12, fontWeight: 600, background: "#DCFCE7", color: "#166534" }}>
                       4 Present
                     </span>
@@ -149,7 +151,8 @@ export function TeacherView() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="px-8 py-5 border-b flex-shrink-0" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+      {/* Allow attendance controls to wrap instead of overflowing the phone viewport. */}
+      <header className="flex-shrink-0 border-b px-4 py-4 sm:px-6 md:px-8 md:py-5" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
         <div className="flex items-center gap-4 mb-1">
           <button
             onClick={() => { setSelectedClassId(null); setSubmitted(false); }}
@@ -160,11 +163,11 @@ export function TeacherView() {
             Back to Classes
           </button>
         </div>
-        <div className="flex items-start justify-between">
-          <div>
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
+          <div className="min-w-0">
             <div className="flex items-center gap-3">
               <span style={{ fontSize: 28 }}>{selectedClass?.icon}</span>
-              <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 24, fontWeight: 700, color: "var(--primary)" }}>
+              <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "clamp(20px, 5vw, 24px)", fontWeight: 700, color: "var(--primary)" }}>
                 {selectedClass?.name}
               </h1>
             </div>
@@ -173,7 +176,7 @@ export function TeacherView() {
             </p>
           </div>
           {/* Date picker */}
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border" style={{ borderColor: "var(--border)", background: "var(--muted)" }}>
+          <div className="flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 sm:w-auto sm:px-4" style={{ borderColor: "var(--border)", background: "var(--muted)" }}>
             <span style={{ fontSize: 13, color: "var(--muted-foreground)", fontWeight: 500 }}>Date:</span>
             <input
               type="date"
@@ -185,7 +188,7 @@ export function TeacherView() {
         </div>
 
         {/* Summary pills */}
-        <div className="flex items-center gap-3 mt-4">
+        <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-3">
           <span className="flex items-center gap-1.5 px-3 py-1 rounded-full" style={{ fontSize: 13, fontWeight: 600, background: "#DCFCE7", color: "#166534" }}>
             <CheckCircle2 size={13} />
             {presentCount} Present
@@ -201,7 +204,7 @@ export function TeacherView() {
 
       {/* Submitted state */}
       {submitted ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-4">
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-5 text-center">
           <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: "#DCFCE7" }}>
             <CheckCircle2 size={40} style={{ color: "#16A34A" }} />
           </div>
@@ -223,14 +226,14 @@ export function TeacherView() {
       ) : (
         <>
           {/* Student list */}
-          <div className="flex-1 overflow-y-auto px-8 py-6">
+          <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6 md:px-8 md:py-6">
             <div className="flex flex-col gap-3 max-w-xl">
               {classStudents.map(student => {
                 const isPresent = attendance[student.id] ?? true;
                 return (
                   <div
                     key={student.id}
-                    className="flex items-center justify-between rounded-2xl px-5 py-4 border transition-all"
+                    className="flex flex-col items-stretch justify-between gap-4 rounded-2xl border px-4 py-4 transition-all sm:flex-row sm:items-center sm:px-5"
                     style={{
                       background: "var(--card)",
                       borderColor: isPresent ? "rgba(22,163,74,0.3)" : "rgba(220,38,38,0.2)",
@@ -261,7 +264,7 @@ export function TeacherView() {
                     </div>
 
                     {/* Large toggle */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-end gap-3">
                       <span style={{ fontSize: 13, fontWeight: 600, color: isPresent ? "#16A34A" : "#DC2626", minWidth: 50, textAlign: "right" }}>
                         {isPresent ? "Present" : "Absent"}
                       </span>
@@ -296,7 +299,7 @@ export function TeacherView() {
           </div>
 
           {/* Submit button */}
-          <div className="px-8 py-5 border-t flex-shrink-0" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+          <div className="flex-shrink-0 border-t px-4 py-4 sm:px-6 md:px-8 md:py-5" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
             <div className="max-w-xl">
               <button
                 onClick={handleSubmit}
