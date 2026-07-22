@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, ClipboardList, BookOpen, ChevronRight, Cross } from "lucide-react";
+import { LayoutDashboard, Users, ClipboardList, BookOpen, ChevronRight, Cross, X } from "lucide-react";
 
 type View = "admin" | "teacher";
 
@@ -6,13 +6,16 @@ type Props = {
   activeView: View;
   onViewChange: (v: View) => void;
   activeClass: string | null;
+  className?: string;
+  mobile?: boolean;
+  onClose?: () => void;
 };
 
-export function Sidebar({ activeView, onViewChange, activeClass }: Props) {
+export function Sidebar({ activeView, onViewChange, activeClass, className = "", mobile = false, onClose }: Props) {
   return (
     <aside
-      className="flex flex-col h-full"
-      style={{ background: "var(--sidebar)", color: "var(--sidebar-foreground)", width: 260 }}
+      className={`h-full flex-col ${className}`}
+      style={{ background: "var(--sidebar)", color: "var(--sidebar-foreground)", width: mobile ? "min(84vw, 320px)" : 260 }}
     >
       {/* Logo / Parish Name */}
       <div className="px-6 py-6 border-b" style={{ borderColor: "var(--sidebar-border)" }}>
@@ -31,6 +34,18 @@ export function Sidebar({ activeView, onViewChange, activeClass }: Props) {
               Faith Formation
             </p>
           </div>
+          {/* Give touch users an obvious way to dismiss the navigation drawer. */}
+          {mobile && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="ml-auto flex h-10 w-10 items-center justify-center rounded-xl"
+              style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "none" }}
+              aria-label="Close navigation menu"
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
       </div>
 

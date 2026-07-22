@@ -140,6 +140,19 @@
     font-size: var(--font-size);
   }
 
+  /* Prevent long controls or content from widening the mobile page beyond the viewport. */
+  body {
+    min-width: 320px;
+    overflow: hidden;
+  }
+
+  /* Let form controls shrink with their responsive containers on narrow screens. */
+  input,
+  select,
+  button {
+    max-width: 100%;
+  }
+
   h1 {
     font-size: var(--text-2xl);
     font-weight: var(--font-weight-medium);
