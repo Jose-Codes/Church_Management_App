@@ -1,21 +1,23 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 -- CATEQUIST ATTENDANCE APP — run in the SAME Supabase project as the
--- church-management app, after reports-notes-forms.sql. Safe to re-run.
+-- church-management app. Safe to re-run.
 --
--- This app (a separate front-end, same database) needs two things the main
--- schema doesn't have yet:
---   1. A language marker on classes, so a program can run English/Spanish
---      sections (e.g. "OCIA" with language='english' and another "OCIA" row
---      with language='spanish'). Null = not language-specific.
---   2. Per-child authorized drop-off/pick-up contacts, and a place on each
---      attendance record to say which of those contacts dropped off / picked
---      up that day.
+-- This app (a separate front-end, same database) needs one thing the schema
+-- files in this repo don't have: a language marker on classes, so a program
+-- can run English/Spanish sections (e.g. "OCIA" with language='english' and
+-- another "OCIA" row with language='spanish'). Null = not language-specific.
 --
--- Everything here is additive (add column/table if not exists) and reuses
--- the existing security-definer helpers from fix-recursion.sql
--- (is_admin / can_manage_member / catechist_sees_member) so it can't
--- reintroduce the "infinite recursion" bug that file fixed — same pattern,
--- applied to a new table.
+-- Drop-off/pick-up tracking turned out to already exist:
+-- attendance_records.dropped_off_by / picked_up_by already reference a
+-- public.authorized_pickups table (family_member_id, full_name, relationship,
+-- phone, email, is_primary, notes) that isn't in any file in this repo's
+-- supabase/ folder — it was applied straight to the project (or lives in a
+-- migration this repo never had, e.g. class-posters.sql territory). The app
+-- reads that table directly now. An earlier version of this file created a
+-- redundant public.pickup_contacts table before that was discovered — the
+-- cleanup below drops it. If you already ran that earlier version and seeded
+-- test contacts into pickup_contacts, re-add them to authorized_pickups
+-- instead (see catequist-attendance-app.seed.sql).
 -- ═══════════════════════════════════════════════════════════════════════════
 
 set check_function_bodies = off;
@@ -24,60 +26,24 @@ set check_function_bodies = off;
 alter table public.classes
   add column if not exists language text check (language in ('english', 'spanish'));
 
--- 2. Pickup contacts ─────────────────────────────────────────────────────────
-create table if not exists public.pickup_contacts (
-  id                bigint generated always as identity primary key,
-  family_member_id  bigint not null references public.family_members (id) on delete cascade,
-  full_name         text not null,
-  relationship      text,                     -- 'Mother', 'Grandmother', 'Neighbor', etc.
-  phone             text,
-  sort_order        smallint not null default 0,
-  created_at        timestamptz not null default now()
-);
-
-create index if not exists idx_pickup_contacts_member on public.pickup_contacts (family_member_id);
-
-alter table public.pickup_contacts enable row level security;
-
-drop policy if exists "pickup_contacts: family, catechist, admin view" on public.pickup_contacts;
-create policy "pickup_contacts: family, catechist, admin view"
-  on public.pickup_contacts for select to authenticated
-  using (
-    public.is_admin()
-    or public.member_in_my_family(family_member_id)
-    or public.catechist_sees_member(family_member_id)
-  );
-
-drop policy if exists "pickup_contacts: parents, catechists, admins manage" on public.pickup_contacts;
-create policy "pickup_contacts: parents, catechists, admins manage"
-  on public.pickup_contacts for all to authenticated
-  using (
-    public.is_admin()
-    or public.can_manage_member(family_member_id)
-    or public.catechist_sees_member(family_member_id)
-  )
-  with check (
-    public.is_admin()
-    or public.can_manage_member(family_member_id)
-    or public.catechist_sees_member(family_member_id)
-  );
-
--- 3. Who dropped off / picked up, per attendance record ─────────────────────
+-- 2. Drop-off/pick-up timestamps ─────────────────────────────────────────────
+-- dropped_off_by / picked_up_by already exist (referencing authorized_pickups).
+-- Just make sure the "when" columns are there too.
 alter table public.attendance_records
-  add column if not exists dropped_off_by bigint references public.pickup_contacts (id) on delete set null,
-  add column if not exists picked_up_by   bigint references public.pickup_contacts (id) on delete set null,
   add column if not exists dropped_off_at timestamptz,
   add column if not exists picked_up_at   timestamptz;
+
+-- 3. Cleanup — drop the redundant table an earlier version of this file
+--    created before authorized_pickups was discovered. No-op if you never ran
+--    that version.
+drop table if exists public.pickup_contacts cascade;
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- DONE.
 --   • Existing classes keep language = null (shown with no language suffix)
 --     until an admin sets 'english' / 'spanish' on the relevant rows.
---   • Existing children have no pickup_contacts until someone adds their 3
---     authorized people. The Catequist app only lets a Catequist SELECT among
---     a child's contacts when recording drop-off/pick-up — parents/admins add
---     the contacts themselves (a parent portal or admin screen), or insert
---     manually for now:
---       insert into pickup_contacts (family_member_id, full_name, relationship, phone)
---       values (123, 'Maria Sanchez', 'Mother', '555-201-4832');
+--   • Pickup contacts are managed wherever authorized_pickups is already
+--     managed in the church-management app (or insert manually for now):
+--       insert into authorized_pickups (family_member_id, full_name, relationship, phone, is_primary)
+--       values (123, 'Maria Sanchez', 'Mother', '555-201-4832', true);
 -- ═══════════════════════════════════════════════════════════════════════════

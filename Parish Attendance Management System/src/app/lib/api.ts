@@ -3,8 +3,8 @@ import type {
   AttendanceDraftEntry,
   AttendanceRecord,
   AttendanceSession,
+  AuthorizedPickup,
   ParishClass,
-  PickupContact,
   Profile,
   RosterStudent,
 } from "./types";
@@ -116,7 +116,7 @@ export async function getMyClasses(catechistId: string): Promise<MyClass[]> {
 export async function getRoster(classId: number): Promise<RosterStudent[]> {
   const { data, error } = await getSupabase()
     .from("class_enrollments")
-    .select("id, family_member:family_members!inner(*, pickup_contacts(*))")
+    .select("id, family_member:family_members!inner(*, authorized_pickups(*))")
     .eq("class_id", classId)
     .eq("family_member.hidden", false);
   if (error) throw error;
@@ -125,10 +125,11 @@ export async function getRoster(classId: number): Promise<RosterStudent[]> {
     .map((row) => {
       const fm = row.family_member as any;
       if (!fm) return null;
-      const contacts = ((fm.pickup_contacts ?? []) as PickupContact[])
+      // No sort_order on authorized_pickups — primary contact first, then by name.
+      const contacts = ((fm.authorized_pickups ?? []) as AuthorizedPickup[])
         .slice()
-        .sort((a, b) => a.sort_order - b.sort_order);
-      return { ...fm, enrollment_id: row.id, pickup_contacts: contacts } as RosterStudent;
+        .sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.full_name.localeCompare(b.full_name));
+      return { ...fm, enrollment_id: row.id, authorized_pickups: contacts } as RosterStudent;
     })
     .filter((s): s is RosterStudent => s != null);
 

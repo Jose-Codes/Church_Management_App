@@ -150,8 +150,15 @@ export function TeacherView() {
       await submitAttendance(selectedClassId, selectedDate, Object.values(drafts));
       setSubmitted(true);
       setRecentSessions(await getRecentSessions(selectedClassId));
-    } catch {
-      setSubmitError("Couldn't submit attendance — check your connection and try again.");
+    } catch (err) {
+      console.error("submitAttendance failed:", err);
+      const isNetworkError = err instanceof TypeError; // fetch throws TypeError when it can't reach the network at all
+      const detail = !isNetworkError && err instanceof Error ? err.message : null;
+      setSubmitError(
+        isNetworkError
+          ? "Couldn't reach the server — check your connection and try again."
+          : `Couldn't submit attendance${detail ? `: ${detail}` : ""}. Try again in a moment.`
+      );
     } finally {
       setSubmitting(false);
     }
@@ -445,13 +452,13 @@ function StudentRow({
             <>
               <PickupPicker
                 label="Dropped off by"
-                contacts={student.pickup_contacts}
+                contacts={student.authorized_pickups}
                 selectedId={draft?.droppedOffBy ?? null}
                 onSelect={(id) => onSetPickup("droppedOffBy", id)}
               />
               <PickupPicker
                 label="Picked up by"
-                contacts={student.pickup_contacts}
+                contacts={student.authorized_pickups}
                 selectedId={draft?.pickedUpBy ?? null}
                 onSelect={(id) => onSetPickup("pickedUpBy", id)}
               />
@@ -470,7 +477,7 @@ function PickupPicker({
   onSelect,
 }: {
   label: string;
-  contacts: RosterStudent["pickup_contacts"];
+  contacts: RosterStudent["authorized_pickups"];
   selectedId: number | null;
   onSelect: (id: number | null) => void;
 }) {
@@ -499,6 +506,7 @@ function PickupPicker({
                   borderColor: selected ? "var(--primary)" : "var(--border)",
                 }}
               >
+                {c.is_primary ? "★ " : ""}
                 {c.full_name}
                 {c.relationship ? ` · ${c.relationship}` : ""}
               </button>

@@ -35,13 +35,18 @@ export function classDisplayName(c: Pick<ParishClass, "name" | "language">) {
   return `${c.name} (${label})`;
 }
 
-export type PickupContact = {
+// Mirrors public.authorized_pickups — a table the church-management app
+// already owns (this app just reads it). No sort_order column; ordering is
+// is_primary first, then full_name.
+export type AuthorizedPickup = {
   id: number;
   family_member_id: number;
   full_name: string;
   relationship: string | null;
   phone: string | null;
-  sort_order: number;
+  email: string | null;
+  is_primary: boolean;
+  notes: string | null;
 };
 
 export type FamilyMember = {
@@ -60,7 +65,7 @@ export type FamilyMember = {
 
 export type RosterStudent = FamilyMember & {
   enrollment_id: number;
-  pickup_contacts: PickupContact[];
+  authorized_pickups: AuthorizedPickup[];
 };
 
 export type AttendanceSession = {
