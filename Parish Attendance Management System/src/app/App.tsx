@@ -1,23 +1,36 @@
-import { useState } from "react";
-import { Sidebar } from "./components/Sidebar";
-import { AdminDashboard } from "./components/AdminDashboard";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { LoginPage } from "./components/LoginPage";
+import { CatequistShell } from "./components/CatequistShell";
 import { TeacherView } from "./components/TeacherView";
 
-type View = "admin" | "teacher";
+function AppContent() {
+  const { session, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div
+        className="flex items-center justify-center"
+        style={{ minHeight: "100dvh", background: "var(--background)", color: "var(--muted-foreground)", fontFamily: "var(--font-sans)" }}
+      >
+        Loading…
+      </div>
+    );
+  }
+
+  if (!session) return <LoginPage />;
+
+  return (
+    <CatequistShell>
+      <TeacherView />
+    </CatequistShell>
+  );
+}
 
 export default function App() {
   {/* MARKER-MAKE-KIT-INVOKED */}
-  const [view, setView] = useState<View>("admin");
-
   return (
-    <div
-      className="flex h-screen overflow-hidden"
-      style={{ fontFamily: "var(--font-sans)", background: "var(--background)" }}
-    >
-      <Sidebar activeView={view} onViewChange={setView} activeClass={null} />
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {view === "admin" ? <AdminDashboard /> : <TeacherView />}
-      </main>
-    </div>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
