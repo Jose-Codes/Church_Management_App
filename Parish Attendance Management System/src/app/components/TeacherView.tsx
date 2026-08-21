@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -74,6 +74,7 @@ export function TeacherView() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const rosterScrollRef = useRef<HTMLDivElement>(null);
 
   // Load "my classes" once we know who's signed in.
   useEffect(() => {
@@ -164,6 +165,18 @@ export function TeacherView() {
     }
   };
 
+  // Jump back to a past session from the Recent Sessions list. Changing the
+  // date re-runs the roster effect, which reloads the saved statuses and
+  // clears the success screen; clearing it here too covers re-tapping the
+  // session that's already open, where the date doesn't actually change.
+  const openSession = (date: string) => {
+    setSubmitted(false);
+    setSelectedDate(date);
+    // The list sits below the roster, so without this the catechist stays
+    // parked at the bottom of the page while the roster reloads above them.
+    rosterScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const backToClasses = () => {
     setSelectedClassId(null);
     setRoster(null);
@@ -247,6 +260,11 @@ export function TeacherView() {
             onChange={(e) => setSelectedDate(e.target.value)}
             style={{ fontSize: 14, fontWeight: 500, border: "none", background: "transparent", color: "var(--foreground)", outline: "none" }}
           />
+          {selectedDate < todayIso() && (
+            <span className="ml-auto" style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)" }}>
+              Editing a past session
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2 mt-3 flex-wrap">
@@ -281,7 +299,7 @@ export function TeacherView() {
         </div>
       ) : (
         <>
-          <div className="flex-1 overflow-y-auto px-4 py-4">
+          <div ref={rosterScrollRef} className="flex-1 overflow-y-auto px-4 py-4">
             {rosterError && <ErrorNote text={rosterError} />}
             {!rosterError && roster === null && <LoadingNote text="Loading roster…" />}
 
@@ -301,27 +319,43 @@ export function TeacherView() {
 
             {recentSessions.length > 0 && (
               <div className="mt-8 max-w-md mx-auto w-full">
-                <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 15, fontWeight: 600, color: "var(--primary)", marginBottom: 10 }}>
+                <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 15, fontWeight: 600, color: "var(--primary)", marginBottom: 2 }}>
                   Recent Sessions
                 </h2>
+                <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 10 }}>Tap a session to review or correct it.</p>
                 <div className="rounded-2xl border overflow-hidden" style={{ borderColor: "var(--border)", background: "var(--card)" }}>
-                  {recentSessions.map((s, i) => (
-                    <div
-                      key={s.id}
-                      className="flex items-center justify-between px-4 py-3"
-                      style={{ borderTop: i > 0 ? "1px solid var(--border)" : "none" }}
-                    >
-                      <span style={{ fontSize: 13, color: "var(--foreground)" }}>{formatSessionDate(s.date)}</span>
-                      <div className="flex items-center gap-1.5">
-                        <span className="px-2 py-0.5 rounded-full" style={{ fontSize: 11, fontWeight: 600, background: "#DCFCE7", color: "#166534" }}>
-                          {s.present} present
-                        </span>
-                        <span className="px-2 py-0.5 rounded-full" style={{ fontSize: 11, fontWeight: 600, background: "#FEE2E2", color: "#991B1B" }}>
-                          {s.absent} absent
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                  {recentSessions.map((s, i) => {
+                    const isOpen = s.date === selectedDate;
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => openSession(s.date)}
+                        aria-current={isOpen ? "true" : undefined}
+                        aria-label={`Edit attendance for ${formatSessionDate(s.date)} — ${s.present} present, ${s.absent} absent`}
+                        className="w-full flex items-center justify-between gap-3 text-left px-4 transition-colors active:opacity-60"
+                        style={{
+                          minHeight: 56,
+                          paddingTop: 12,
+                          paddingBottom: 12,
+                          border: "none",
+                          borderTop: i > 0 ? "1px solid var(--border)" : "none",
+                          background: isOpen ? "var(--muted)" : "transparent",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <span style={{ fontSize: 13, fontWeight: isOpen ? 600 : 400, color: "var(--foreground)" }}>{formatSessionDate(s.date)}</span>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <span className="px-2 py-0.5 rounded-full" style={{ fontSize: 11, fontWeight: 600, background: "#DCFCE7", color: "#166534" }}>
+                            {s.present} present
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full" style={{ fontSize: 11, fontWeight: 600, background: "#FEE2E2", color: "#991B1B" }}>
+                            {s.absent} absent
+                          </span>
+                          <ChevronRight size={14} style={{ color: "var(--muted-foreground)" }} />
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
