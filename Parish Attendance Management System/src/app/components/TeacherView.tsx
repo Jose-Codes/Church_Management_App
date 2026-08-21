@@ -167,11 +167,9 @@ export function TeacherView() {
   };
 
   // Jump back to a past session from the Recent Sessions list. Changing the
-  // date re-runs the roster effect, which reloads the saved statuses and
-  // clears the success screen; clearing it here too covers re-tapping the
-  // session that's already open, where the date doesn't actually change.
+  // date re-runs the roster effect, which reloads that session's saved
+  // statuses and clears any leftover success screen.
   const openSession = (date: string) => {
-    setSubmitted(false);
     setSelectedDate(date);
     // The list sits below the roster, so without this the catechist stays
     // parked at the bottom of the page while the roster reloads above them.
@@ -515,7 +513,7 @@ function PickupPicker({
   onSelect: (id: number | null) => void;
 }) {
   return (
-    <div>
+    <div role="group" aria-label={label}>
       <p style={{ fontSize: 11, fontWeight: 700, color: "var(--muted-foreground)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
         {label}
       </p>
@@ -529,6 +527,7 @@ function PickupPicker({
               <button
                 key={c.id}
                 onClick={() => onSelect(c.id)}
+                aria-pressed={selected}
                 className="px-3 py-1.5 rounded-full border"
                 style={{
                   fontSize: 12,
