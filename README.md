@@ -88,3 +88,4 @@ machine): deploy the built app (`npm run build`) to a static host like
 Vercel, Netlify, or Cloudflare Pages — any of them will serve the PWA
 correctly with zero extra config.
 # bounty-fix-ref: https://github.com/Jose-Codes/Church_Management_App/issues/9
+# bounty-fix-ref: https://github.com/Jose-Codes/Church_Management_App/issues/9
