@@ -42,11 +42,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     getSession()
-      .then((s) => !cancelled && applySession(s))
-      .catch(() => !cancelled && setLoading(false));
+      .then((s) => {
+        if (!cancelled) void applySession(s);
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-    const { data: subscription } = onAuthStateChange((_event, s) => {
-      applySession(s);
+    const { data: subscription } = onAuthStateChange(async (_event, s) => {
+      await applySession(s);
     });
 
     return () => {
