@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { NoClassesAssignedNotice } from "./AccountNotReadyView";
 import {
   getAttendanceForDate,
   getMyClasses,
@@ -188,7 +189,9 @@ export function TeacherView() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="px-5 py-5 border-b flex-shrink-0" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
           <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 700, color: "var(--primary)" }}>My Classes</h1>
-          <p style={{ fontSize: 13, color: "var(--muted-foreground)", marginTop: 2 }}>Select a class to take attendance</p>
+          {classes?.length !== 0 && (
+            <p style={{ fontSize: 13, color: "var(--muted-foreground)", marginTop: 2 }}>Select a class to take attendance</p>
+          )}
         </header>
 
         <div className="flex-1 overflow-y-auto px-4 py-5">
@@ -196,11 +199,7 @@ export function TeacherView() {
 
           {!classesError && classes === null && <LoadingNote text="Loading your classes…" />}
 
-          {classes && classes.length === 0 && (
-            <p style={{ fontSize: 14, color: "var(--muted-foreground)", padding: "24px 4px" }}>
-              You're not assigned to any classes yet. Contact your parish office if that doesn't look right.
-            </p>
-          )}
+          {classes && classes.length === 0 && <NoClassesAssignedNotice />}
 
           <div className="flex flex-col gap-3 max-w-md mx-auto w-full">
             {classes?.map((cls) => (

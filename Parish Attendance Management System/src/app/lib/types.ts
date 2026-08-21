@@ -15,6 +15,13 @@ export type Profile = {
   church_id: number | null;
 };
 
+/** Signing up doesn't make you a catechist — the parish office still has to
+ * set the role. Anyone else (including a profile we couldn't load) gets the
+ * "not ready yet" screen instead of an empty class list. */
+export function canTakeAttendance(profile: Profile | null): boolean {
+  return profile?.role === "catechist" || profile?.role === "admin";
+}
+
 export type ParishClass = {
   id: number;
   name: string;
